@@ -8,15 +8,18 @@ plugins {
 apply(from = "$rootDir/common.gradle")
 
 android {
-    namespace = "com.ozodrukh.auth"
+    namespace = "com.ozodrukh.core"
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(libs.timber)
     implementation(libs.androidx.core.ktx)
 
     implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(platform(libs.okhttp.bom))
     implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
 
     // Koin
     implementation(platform(libs.koin.bom))
