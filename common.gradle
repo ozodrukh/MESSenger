@@ -1,0 +1,38 @@
+android {
+    namespace = "dev.ioio.app"
+    compileSdkVersion 36
+
+    defaultConfig {
+        minSdk = 29
+    }
+
+    buildFeatures {
+        dataBinding = true
+        viewBinding = true
+        compose = true
+    }
+
+    buildTypes {
+        release {
+            proguardFiles(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro"
+            )
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
