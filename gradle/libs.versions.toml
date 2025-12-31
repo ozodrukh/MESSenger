@@ -30,7 +30,11 @@ material = "1.13.0"
 compose-material = "1.9.2"
 paging = "3.3.6"
 
+lib-phone = "9.0.14"
+
 [libraries]
+lib-phone = { group = "com.googlecode.libphonenumber", name = "libphonenumber", version.ref = "lib-phone" }
+
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

@@ -7,7 +7,7 @@ import okhttp3.Route
 
 class TokenAuthenticator(
     private val tokenManager: TokenManager,
-    private val authServiceProvider: () -> AuthService
+    private val refreshTokenServiceProvider: () -> RefreshTokenService
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
@@ -25,7 +25,7 @@ class TokenAuthenticator(
             }
 
             val refreshCall =
-                authServiceProvider().refreshToken(RefreshTokenRequest(currentRefreshToken))
+                refreshTokenServiceProvider().refreshToken(RefreshTokenRequest(currentRefreshToken))
 
             try {
                 val refreshResponse = refreshCall.execute()

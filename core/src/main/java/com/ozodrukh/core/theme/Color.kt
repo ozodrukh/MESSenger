@@ -1,4 +1,4 @@
-package com.ozodrukh.mess.ui.theme
+package com.ozodrukh.core.theme
 
 import androidx.compose.ui.graphics.Color
 
