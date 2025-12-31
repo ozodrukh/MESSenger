@@ -15,6 +15,13 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.androidx.core.ktx)
 
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material)
+
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(platform(libs.okhttp.bom))

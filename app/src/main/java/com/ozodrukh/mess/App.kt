@@ -3,6 +3,7 @@ package com.ozodrukh.mess
 import android.app.Application
 import com.ozodrukh.auth.di.AuthModule
 import com.ozodrukh.core.CoreModule
+import com.ozodrukh.feature.user.auth.di.FeatureUserAuthModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -19,6 +20,7 @@ class App : Application() {
             modules(
                 CoreModule,
                 AuthModule,
+                FeatureUserAuthModule
             )
         }
 
