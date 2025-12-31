@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ozodrukh.core.theme.MessengerTheme
 import com.ozodrukh.feature.user.auth.AuthRoute
 import com.ozodrukh.feature.user.auth.AuthScreen
+import dev.ioio.estetique.navigation.AppNavigation
 import timber.log.Timber
 
 class MainActivity : ComponentActivity() {
@@ -23,19 +24,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             MessengerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    val navController = rememberNavController()
-
-                    Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),) {
-                        NavHost(
-                            navController = navController,
-                            startDestination = AuthRoute.Authenticate,
-                        ) {
-                            AuthScreen {
-                                Timber.d("Logged in")
-                            }
-                        }
+                    Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
+                        AppNavigation()
                     }
-
                 }
             }
         }

@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":auth"))
     implementation(project(":feature_user_auth"))
+    implementation(project(":feature_dialogs"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

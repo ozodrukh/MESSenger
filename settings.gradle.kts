@@ -1,5 +1,8 @@
 import org.gradle.kotlin.dsl.maven
 
+include(":feature_dialogs")
+
+
 include(":core")
 
 
