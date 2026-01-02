@@ -1,9 +1,7 @@
 package com.ozodrukh.feature_dialogs.models
 
 import androidx.compose.runtime.Immutable
-
-@JvmInline
-value class ChatId(val value: String)
+import com.ozodrukh.core.domain.model.ChatId
 
 @Immutable
 data class Dialog(

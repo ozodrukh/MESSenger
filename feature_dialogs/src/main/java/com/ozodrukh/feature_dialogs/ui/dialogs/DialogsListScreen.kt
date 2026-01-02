@@ -17,11 +17,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.ozodrukh.feature_dialogs.models.ChatId
+import com.ozodrukh.core.domain.model.ChatId
 import com.ozodrukh.feature_dialogs.models.Dialog
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DialogsListScreen(
     viewModel: DialogsViewModel = koinViewModel(),
@@ -29,21 +31,34 @@ fun DialogsListScreen(
 ) {
     val dialogs by viewModel.dialogs.collectAsState()
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        items(dialogs, key = { it.id.value }) { dialog ->
-            DialogItem(
-                dialog = dialog,
-                onClick = { onDialogClick(dialog.id) }
-            )
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 88.dp),
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-            )
+    Column {
+        Text(
+            "Chats",
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp)
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            items(dialogs, key = { it.id.value }) { dialog ->
+                DialogItem(
+                    dialog = dialog,
+                    onClick = { onDialogClick(dialog.id) }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 88.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+            }
         }
     }
 }
@@ -109,7 +124,7 @@ fun DialogItem(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                
+
                 if (dialog.unreadCount > 0) {
                     Box(
                         modifier = Modifier

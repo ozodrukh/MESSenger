@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -16,25 +15,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.ozodrukh.feature_dialogs.models.ChatId
+import com.ozodrukh.feature.profile.ui.ProfileRoute
+import com.ozodrukh.feature.profile.ui.profileScreen
+import com.ozodrukh.core.domain.model.ChatId
 import com.ozodrukh.feature_dialogs.ui.dialogs.DialogsListScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    onDialogClick: (ChatId) -> Unit
+    onDialogClick: (ChatId) -> Unit,
+    onLogout: () -> Unit,
 ) {
     val navController = rememberNavController()
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Chats", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        },
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
@@ -58,9 +52,10 @@ fun MainScreen(
                     label = { Text("Chats") }
                 )
                 NavigationBarItem(
-                    selected = currentDestination?.hierarchy?.any { it.route == "profile" } == true,
+                    selected = currentDestination?.hierarchy
+                        ?.any { it.route in arrayOf(ProfileRoute.Viewer, ProfileRoute.Editor) } == true,
                     onClick = {
-                        navController.navigate("profile") {
+                        navController.navigate(ProfileRoute.Viewer) {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
@@ -82,9 +77,8 @@ fun MainScreen(
             composable("chats") {
                 DialogsListScreen(onDialogClick = onDialogClick)
             }
-            composable("profile") {
-                ProfileScreen()
-            }
+
+            profileScreen(navController, onLogout = onLogout)
         }
     }
 }

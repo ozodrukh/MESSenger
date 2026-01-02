@@ -1,10 +1,13 @@
 package com.ozodrukh.core
 
+import com.ozodrukh.core.data.chat.FakeChatDataSource
+import com.ozodrukh.core.network.AppConfigs
 import com.ozodrukh.core.network.NetworkErrorHandlingInterceptor
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -14,8 +17,6 @@ object CoreModuleQualifiers {
     val AuthorizedRetrofit = named("authorizedRetrofit")
     val UnauthorizedRetrofit = named("unauthorizedRetrofit")
 }
-
-private const val baseUrl = "https://plannerok.ru/api/v1/"
 
 private fun provideOkHttpClient(
     authenticator: Authenticator?,
@@ -34,18 +35,22 @@ private fun provideOkHttpClient(
     }
 }
 
-val CoreModule = module {
+fun Module.singleAuthorizedRetrofit() {
     single(CoreModuleQualifiers.AuthorizedRetrofit) {
         Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(AppConfigs.baseApiUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .client(provideOkHttpClient(get<Authenticator>()))
             .build()
     }
+}
+
+val CoreModule = module {
+    single { FakeChatDataSource() }
 
     single(CoreModuleQualifiers.UnauthorizedRetrofit) {
         Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(AppConfigs.baseApiUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .client(provideOkHttpClient(null))
             .build()
