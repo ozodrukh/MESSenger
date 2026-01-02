@@ -11,7 +11,7 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import retrofit2.Retrofit
 
-var AuthModule = module {
+val AuthModule = module {
     singleOf(::TokenManager)
     singleOf(::SessionManager) { bind<IsAuthenticated>() }
     single<TokenAuthenticator> {

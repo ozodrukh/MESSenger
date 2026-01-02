@@ -23,10 +23,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MessengerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Box(modifier = Modifier.padding(top = innerPadding.calculateTopPadding())) {
-                        AppNavigation()
-                    }
+                Box(modifier = Modifier) {
+                    AppNavigation()
                 }
             }
         }

@@ -1,5 +1,11 @@
 import org.gradle.kotlin.dsl.maven
 
+include(":feature_chat")
+
+
+include(":feature_profile")
+
+
 include(":feature_dialogs")
 
 

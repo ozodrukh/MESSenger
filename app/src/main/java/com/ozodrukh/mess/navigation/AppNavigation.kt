@@ -9,12 +9,13 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.ozodrukh.auth.session.IsAuthenticated
+import com.ozodrukh.feature.chat.ChatScreen
+import com.ozodrukh.feature.chat.navigateToChat
 import com.ozodrukh.feature.user.auth.AuthRoute
 import com.ozodrukh.feature.user.auth.AuthScreen
 import com.ozodrukh.feature_dialogs.DialogScreen
 import com.ozodrukh.feature_dialogs.DialogsRoute
 import org.koin.compose.koinInject
-import timber.log.Timber
 
 @Composable
 fun AppNavigation(
@@ -40,8 +41,14 @@ fun AppNavigation(
             }
 
             DialogScreen(
-                openDialog = { chatId -> Timber.d("Open dialog: $chatId") }
+                openDialog = { chatId ->
+                    navController.navigateToChat(chatId.value)
+                }
             )
+
+            ChatScreen(onBackClick = {
+                 navController.popBackStack()
+            })
         }
     }
 }

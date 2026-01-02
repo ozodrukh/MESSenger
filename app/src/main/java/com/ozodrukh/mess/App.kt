@@ -3,11 +3,15 @@ package com.ozodrukh.mess
 import android.app.Application
 import com.ozodrukh.auth.di.AuthModule
 import com.ozodrukh.core.CoreModule
+import com.ozodrukh.feature.chat.di.FeatureChatModule
 import com.ozodrukh.feature.user.auth.di.FeatureUserAuthModule
 import com.ozodrukh.feature_dialogs.di.FeatureDialogsModule
+import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import org.koin.core.lazyModules
+import org.koin.dsl.lazyModule
 import timber.log.Timber
 
 class App : Application() {
@@ -22,7 +26,8 @@ class App : Application() {
                 CoreModule,
                 AuthModule,
                 FeatureUserAuthModule,
-                FeatureDialogsModule
+                FeatureDialogsModule,
+                FeatureChatModule
             )
         }
 
