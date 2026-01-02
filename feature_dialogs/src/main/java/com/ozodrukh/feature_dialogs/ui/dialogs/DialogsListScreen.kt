@@ -1,4 +1,4 @@
-package com.ozodrukh.feature_dialogs.ui
+package com.ozodrukh.feature_dialogs.ui.dialogs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -6,77 +6,44 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.ozodrukh.feature_dialogs.data.MockData
 import com.ozodrukh.feature_dialogs.models.ChatId
 import com.ozodrukh.feature_dialogs.models.Dialog
+import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DialogsScreen(
-    onDialogClick: (ChatId) -> Unit,
-    onProfileClick: () -> Unit
+fun DialogsListScreen(
+    viewModel: DialogsViewModel = koinViewModel(),
+    onDialogClick: (ChatId) -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Chats", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+    val dialogs by viewModel.dialogs.collectAsState()
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        items(dialogs, key = { it.id.value }) { dialog ->
+            DialogItem(
+                dialog = dialog,
+                onClick = { onDialogClick(dialog.id) }
             )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
-            ) {
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { /* Already here */ },
-                    icon = { Icon(Icons.Default.Chat, contentDescription = "Chats") },
-                    label = { Text("Chats") }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onProfileClick,
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                    label = { Text("Profile") }
-                )
-            }
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            items(MockData.dialogs, key = { it.id.value }) { dialog ->
-                DialogItem(
-                    dialog = dialog,
-                    onClick = { onDialogClick(dialog.id) }
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 88.dp),
-                    thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
-            }
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 88.dp),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
         }
     }
 }

@@ -40,8 +40,7 @@ fun AppNavigation(
             }
 
             DialogScreen(
-                openDialog = { chatId -> Timber.d("Open dialog: $chatId") },
-                openMyProfile = { Timber.d("Open profile") }
+                openDialog = { chatId -> Timber.d("Open dialog: $chatId") }
             )
         }
     }
