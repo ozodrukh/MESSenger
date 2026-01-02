@@ -4,7 +4,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,7 +17,7 @@ object AuthRoute {
     const val Authenticate = "auth_screen"
 }
 
-fun NavGraphBuilder.AuthScreen(onAuthSuccess: () -> Unit) {
+fun NavGraphBuilder.authScreen(onAuthSuccess: () -> Unit) {
     composable(AuthRoute.Authenticate) {
         AuthNavigation(onAuthSuccess)
     }

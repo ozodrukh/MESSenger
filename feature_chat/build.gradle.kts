@@ -1,26 +1,19 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.serialization)
-
-    id("kotlin-parcelize")
 }
 
 android {
-    namespace = "com.ozodrukh.mess"
-    compileSdk {
-        version = release(36)
-    }
+    namespace = "com.ozodrukh.feature.chat"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.ozodrukh.mess"
-        minSdk = 29
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = 28
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -39,44 +32,35 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":auth"))
-    implementation(project(":feature_user_auth"))
-    implementation(project(":feature_dialogs"))
-    implementation(project(":feature_profile"))
-    implementation(project(":feature_chat"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-
-    implementation(libs.timber)
+    implementation(libs.androidx.compose.material) // For some extended icons if needed
+    implementation(libs.androidx.compose.icons)
 
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.navigation.ui)
-    implementation(libs.navigation.runtime.ktx)
-    implementation(libs.navigation.features)
-    implementation(libs.navigation.fragment)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Koin
-    implementation(platform(libs.koin.bom))
-    implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
-    implementation(libs.koin.compose.viewmodel)
-    implementation(libs.koin.core.coroutines)
+
+    implementation(libs.coil.compose)
+    implementation(libs.timber)
+    
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.collections.immutable)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

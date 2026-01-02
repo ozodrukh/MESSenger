@@ -6,21 +6,26 @@ import com.ozodrukh.auth.session.SessionManager
 import com.ozodrukh.auth.TokenAuthenticator
 import com.ozodrukh.auth.TokenManager
 import com.ozodrukh.core.CoreModuleQualifiers
+import com.ozodrukh.core.singleAuthorizedRetrofit
+import okhttp3.Authenticator
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import retrofit2.Retrofit
 
-var AuthModule = module {
+val AuthModule = module {
     singleOf(::TokenManager)
     singleOf(::SessionManager) { bind<IsAuthenticated>() }
-    single<TokenAuthenticator> {
+    single<Authenticator> {
         TokenAuthenticator(
             tokenManager = get<TokenManager>(),
+            sessionManager = get<SessionManager>(),
             refreshTokenServiceProvider = {
                 get<RefreshTokenService>()
             })
     }
+
+    singleAuthorizedRetrofit()
 
     single<RefreshTokenService> {
         get<Retrofit>(CoreModuleQualifiers.UnauthorizedRetrofit)
