@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(project(":auth"))
     implementation(project(":core"))
+    implementation(project(":feature_profile"))
     implementation(libs.gson)
 
     // Coil
