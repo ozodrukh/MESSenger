@@ -1,5 +1,6 @@
 package com.ozodrukh.auth
 
+import com.ozodrukh.auth.session.SessionManager
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
@@ -7,6 +8,7 @@ import okhttp3.Route
 
 class TokenAuthenticator(
     private val tokenManager: TokenManager,
+    private val sessionManager: SessionManager,
     private val refreshTokenServiceProvider: () -> RefreshTokenService
 ) : Authenticator {
 
@@ -39,7 +41,7 @@ class TokenAuthenticator(
                         .header("Authorization", "Bearer ${authData.accessToken}")
                         .build()
                 } else {
-                    tokenManager.clearTokens()
+                    sessionManager.onSessionExpired()
                     return null
                 }
             } catch (e: Exception) {

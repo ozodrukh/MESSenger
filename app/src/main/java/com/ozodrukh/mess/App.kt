@@ -4,6 +4,7 @@ import android.app.Application
 import com.ozodrukh.auth.di.AuthModule
 import com.ozodrukh.core.CoreModule
 import com.ozodrukh.feature.chat.di.FeatureChatModule
+import com.ozodrukh.feature.profile.di.ProfileModule
 import com.ozodrukh.feature.user.auth.di.FeatureUserAuthModule
 import com.ozodrukh.feature_dialogs.di.FeatureDialogsModule
 import kotlinx.coroutines.Dispatchers
@@ -23,11 +24,12 @@ class App : Application() {
             androidContext(this@App)
             androidLogger()
             modules(
-                CoreModule,
                 AuthModule,
+                CoreModule,
                 FeatureUserAuthModule,
                 FeatureDialogsModule,
-                FeatureChatModule
+                FeatureChatModule,
+                ProfileModule,
             )
         }
 
