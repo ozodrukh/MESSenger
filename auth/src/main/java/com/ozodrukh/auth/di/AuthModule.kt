@@ -2,6 +2,7 @@ package com.ozodrukh.auth.di
 
 import com.ozodrukh.auth.session.IsAuthenticated
 import com.ozodrukh.auth.RefreshTokenService
+import com.ozodrukh.auth.SharedTokenManager
 import com.ozodrukh.auth.session.SessionManager
 import com.ozodrukh.auth.TokenAuthenticator
 import com.ozodrukh.auth.TokenManager
@@ -14,7 +15,10 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 
 val AuthModule = module {
-    singleOf(::TokenManager)
+    single<TokenManager> {
+        SharedTokenManager(context = get())
+    }
+
     singleOf(::SessionManager) { bind<IsAuthenticated>() }
     single<Authenticator> {
         TokenAuthenticator(

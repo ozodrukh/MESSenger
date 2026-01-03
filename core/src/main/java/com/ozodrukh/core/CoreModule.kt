@@ -1,5 +1,7 @@
 package com.ozodrukh.core
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.ozodrukh.core.data.chat.FakeChatDataSource
 import com.ozodrukh.core.network.AppConfigs
 import com.ozodrukh.core.network.NetworkErrorHandlingInterceptor
@@ -47,6 +49,7 @@ fun Module.singleAuthorizedRetrofit() {
 
 val CoreModule = module {
     single { FakeChatDataSource() }
+    single { GsonBuilder().create() }
 
     single(CoreModuleQualifiers.UnauthorizedRetrofit) {
         Retrofit.Builder()

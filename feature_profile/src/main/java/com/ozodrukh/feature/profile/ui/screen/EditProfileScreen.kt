@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +35,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -100,7 +102,7 @@ fun EditProfileScreen(
         Column {
             TopAppBar(
                 title = { Text("Edit Profile") },
-                windowInsets = WindowInsets(0, 0,0, 0),
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -134,7 +136,8 @@ fun EditProfileScreen(
                 Box(
                     modifier = Modifier
                         .size(100.dp)
-                        .clickable { imagePickerLauncher.launch("image/*") }
+                        .background(Color.Unspecified, CircleShape)
+                        .clickable(interactionSource = null, indication = ripple(bounded = false)) { imagePickerLauncher.launch("image/*") }
                 ) {
                     val painter = rememberAsyncImagePainter(
                         model = formState.avatarUri ?: formState.avatarUrl
