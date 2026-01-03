@@ -27,11 +27,37 @@ class ChatViewModel(
     private val _suggestion = MutableStateFlow<String?>(null)
     val suggestion: StateFlow<String?> = _suggestion.asStateFlow()
 
+    private var cachedSuggestion: String? = null
+
+    private val _isAiSuggestionsEnabled = MutableStateFlow(true)
+    val isAiSuggestionsEnabled: StateFlow<Boolean> = _isAiSuggestionsEnabled.asStateFlow()
+
+    private val _isNewMessageReceived = MutableStateFlow(false)
+    val isNewMessageReceived: StateFlow<Boolean> = _isNewMessageReceived.asStateFlow()
+
+    private val _isGeneratingSuggestion = MutableStateFlow(false)
+    val isGeneratingSuggestion: StateFlow<Boolean> = _isGeneratingSuggestion.asStateFlow()
+
     private val _summary = MutableStateFlow<String?>(null)
     val summary: StateFlow<String?> = _summary.asStateFlow()
 
+    private val _showSummaryDialog = MutableStateFlow(false)
+    val showSummaryDialog: StateFlow<Boolean> = _showSummaryDialog.asStateFlow()
+
+    private val _isGeneratingSummary = MutableStateFlow(false)
+    val isGeneratingSummary: StateFlow<Boolean> = _isGeneratingSummary.asStateFlow()
+
+    private var lastProcessedMessageId: String? = null
+    private var summaryLastMessageId: String? = null
+
     val uiState: StateFlow<ChatUiState> = repository.getChatDetails(chatId)
-        .map { ChatUiState.Success(it) as ChatUiState }
+        .map { chatDetails ->
+            val lastMsg = chatDetails.messages.lastOrNull()
+            if (lastMsg != null && !lastMsg.isMe && lastMsg.id != lastProcessedMessageId) {
+                 _isNewMessageReceived.value = true
+            }
+            ChatUiState.Success(chatDetails) as ChatUiState 
+        }
         .catch { emit(ChatUiState.Error(it.message ?: "Unknown error")) }
         .stateIn(
             scope = viewModelScope,
@@ -41,17 +67,68 @@ class ChatViewModel(
 
     fun sendMessage(text: String) {
         if (text.isBlank()) return
+
+        _suggestion.value = null
+
         viewModelScope.launch {
             repository.sendMessage(chatId, text)
-            _suggestion.value = null // Clear suggestion after sending
+
+            cachedSuggestion = null
+            lastProcessedMessageId = null
+            _isNewMessageReceived.value = false
         }
     }
 
+    fun toggleAiSuggestions() {
+        if (_suggestion.value == null && cachedSuggestion != null && isAiSuggestionsEnabled.value) {
+            _suggestion.value = cachedSuggestion
+            return
+        } else if (isAiSuggestionsEnabled.value && cachedSuggestion == null) {
+            generateSuggestion()
+            return
+        }
+
+
+        _isAiSuggestionsEnabled.value = !_isAiSuggestionsEnabled.value
+
+        if (!_isAiSuggestionsEnabled.value) {
+            if (_suggestion.value != null) {
+                cachedSuggestion = _suggestion.value
+            }
+            _suggestion.value = null
+        } else {
+            if (cachedSuggestion != null) {
+                _suggestion.value = cachedSuggestion
+            } else {
+                generateSuggestion()
+            }
+        }
+    }
+
+    fun dismissSuggestion() {
+        _suggestion.value = null
+    }
+
+    fun regenerateSuggestion() {
+        lastProcessedMessageId = null
+        generateSuggestion()
+    }
+
     fun generateSuggestion() {
+        _isNewMessageReceived.value = false
+        if (!_isAiSuggestionsEnabled.value) return
+        
         val currentState = uiState.value
         if (currentState is ChatUiState.Success) {
+            val messages = currentState.data.messages
+            if (messages.isEmpty()) return
+            
+            val lastMsgId = messages.last().id
+            if (lastMsgId == lastProcessedMessageId) return
+
             viewModelScope.launch {
-                val history = currentState.data.messages.map { uiMsg ->
+                _isGeneratingSuggestion.value = true
+                val history = messages.takeLast(10).map { uiMsg ->
                     Message(
                         id = uiMsg.id,
                         text = uiMsg.text,
@@ -59,35 +136,64 @@ class ChatViewModel(
                         senderId = if (uiMsg.isMe) "me" else "other"
                     )
                 }
-                val suggestionMsg = chatSuggestion.suggestNextMessage(history)
-                if (suggestionMsg.text.isNotBlank()) {
-                    _suggestion.value = suggestionMsg.text
+
+                lastProcessedMessageId = lastMsgId 
+                
+                try {
+                    val suggestionMsg = chatSuggestion.suggestNextMessage(history)
+                    if (suggestionMsg.text.isNotBlank()) {
+                        _suggestion.value = suggestionMsg.text
+                        cachedSuggestion = suggestionMsg.text
+                    }
+                } catch (e: Exception) {
+                    // Reset if failed so we can try again
+                    lastProcessedMessageId = null
+                } finally {
+                    _isGeneratingSuggestion.value = false
                 }
             }
         }
     }
 
     fun generateSummary() {
+        _showSummaryDialog.value = true
+
         val currentState = uiState.value
         if (currentState is ChatUiState.Success) {
+            val messages = currentState.data.messages
+            if (messages.isEmpty()) return
+
+            val lastMsgId = messages.last().id
+
+            // Check cache
+            if (_summary.value != null && summaryLastMessageId == lastMsgId) {
+                return
+            }
+
             viewModelScope.launch {
-                val history = currentState.data.messages.map { uiMsg ->
-                    Message(
-                        id = uiMsg.id,
-                        text = uiMsg.text,
-                        timestamp = uiMsg.timestamp,
-                        senderId = if (uiMsg.isMe) "me" else "other"
-                    )
-                }
-                val summaryMsg = chatSuggestion.createSummary(history)
-                if (summaryMsg.text.isNotBlank()) {
-                    _summary.value = summaryMsg.text
+                _isGeneratingSummary.value = true
+                try {
+                    val history = messages.map { uiMsg ->
+                        Message(
+                            id = uiMsg.id,
+                            text = uiMsg.text,
+                            timestamp = uiMsg.timestamp,
+                            senderId = if (uiMsg.isMe) "me" else "other"
+                        )
+                    }
+                    val summaryMsg = chatSuggestion.createSummary(history)
+                    if (summaryMsg.text.isNotBlank()) {
+                        _summary.value = summaryMsg.text
+                        summaryLastMessageId = lastMsgId
+                    }
+                } finally {
+                    _isGeneratingSummary.value = false
                 }
             }
         }
     }
 
-    fun clearSummary() {
-        _summary.value = null
+    fun dismissSummary() {
+        _showSummaryDialog.value = false
     }
 }

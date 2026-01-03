@@ -1,5 +1,11 @@
 package com.ozodrukh.feature.chat.ui
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -26,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,6 +64,7 @@ import coil3.compose.AsyncImage
 import com.ozodrukh.core.domain.model.ChatId
 import com.ozodrukh.feature.chat.models.ChatUiState
 import com.ozodrukh.feature.chat.models.Message
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import java.text.SimpleDateFormat
@@ -71,7 +80,12 @@ fun ChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val suggestion by viewModel.suggestion.collectAsStateWithLifecycle()
+    val isAiSuggestionsEnabled by viewModel.isAiSuggestionsEnabled.collectAsStateWithLifecycle()
+    val isNewMessageReceived by viewModel.isNewMessageReceived.collectAsStateWithLifecycle()
+    val isGeneratingSuggestion by viewModel.isGeneratingSuggestion.collectAsStateWithLifecycle()
     val summary by viewModel.summary.collectAsStateWithLifecycle()
+    val showSummaryDialog by viewModel.showSummaryDialog.collectAsStateWithLifecycle()
+    val isGeneratingSummary by viewModel.isGeneratingSummary.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
     LaunchedEffect(uiState) {
@@ -83,50 +97,45 @@ fun ChatScreen(
         }
     }
 
-    if (summary != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::clearSummary,
-            title = { Text("Chat Summary") },
-            text = { Text(summary ?: "") },
-            confirmButton = {
-                TextButton(onClick = viewModel::clearSummary) {
-                    Text("Close")
-                }
-            }
-        )
-    }
+    ChatSummaryDialog(
+        isVisible = showSummaryDialog,
+        summary = summary,
+        isLoading = isGeneratingSummary,
+        onDismiss = viewModel::dismissSummary
+    )
 
     Scaffold(
         modifier = Modifier.imePadding(),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             val state = uiState
-            val title = if (state is ChatUiState.Success) state.data.chatName else "Chat ${chatId.value}"
+            val title =
+                if (state is ChatUiState.Success) state.data.chatName else "Chat ${chatId.value}"
             val subtitle = if (state is ChatUiState.Success) {
-                 if (state.data.isOnline) "Online" else formatLastSeen(state.data.lastSeen)
+                if (state.data.isOnline) "Online" else formatLastSeen(state.data.lastSeen)
             } else null
-            
+
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                         if (state is ChatUiState.Success) {
-                             AsyncImage(
-                                 model = state.data.chatAvatarUrl,
-                                 contentDescription = null,
-                                 contentScale = ContentScale.Crop,
-                                 modifier = Modifier
-                                     .size(40.dp)
-                                     .clip(CircleShape)
-                                     .background(MaterialTheme.colorScheme.surfaceVariant)
-                             )
-                             Spacer(Modifier.width(12.dp))
-                         }
-                         Column {
-                             Text(text = title, style = MaterialTheme.typography.titleMedium)
-                             if (subtitle != null) {
-                                 Text(text = subtitle, style = MaterialTheme.typography.bodySmall)
-                             }
-                         }
+                        if (state is ChatUiState.Success) {
+                            AsyncImage(
+                                model = state.data.chatAvatarUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                        }
+                        Column {
+                            Text(text = title, style = MaterialTheme.typography.titleMedium)
+                            if (subtitle != null) {
+                                Text(text = subtitle, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
                     }
                 },
                 navigationIcon = {
@@ -145,7 +154,13 @@ fun ChatScreen(
             ChatInput(
                 onSend = viewModel::sendMessage,
                 onFocus = viewModel::generateSuggestion,
-                suggestion = suggestion
+                suggestion = suggestion,
+                isAiSuggestionsEnabled = isAiSuggestionsEnabled,
+                isNewMessageReceived = isNewMessageReceived,
+                isGeneratingSuggestion = isGeneratingSuggestion,
+                onRegenerateSuggestion = viewModel::regenerateSuggestion,
+                onDismissSuggestion = viewModel::dismissSuggestion,
+                onToggleAiSuggestions = viewModel::toggleAiSuggestions
             )
         }
     ) { paddingValues ->
@@ -158,6 +173,7 @@ fun ChatScreen(
                 ChatUiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 is ChatUiState.Error -> {
                     Text(
                         text = state.message,
@@ -165,6 +181,7 @@ fun ChatScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 is ChatUiState.Success -> {
                     LazyColumn(
                         state = listState,
@@ -186,9 +203,11 @@ fun ChatScreen(
 @Composable
 fun MessageItem(message: Message) {
     val alignment = if (message.isMe) Alignment.CenterEnd else Alignment.CenterStart
-    val containerColor = if (message.isMe) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
-    val contentColor = if (message.isMe) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
-    
+    val containerColor =
+        if (message.isMe) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
+    val contentColor =
+        if (message.isMe) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
+
     val shape = if (message.isMe) {
         RoundedCornerShape(16.dp, 16.dp, 0.dp, 16.dp)
     } else {
@@ -227,31 +246,30 @@ fun ChatInput(
     onSend: (String) -> Unit,
     onFocus: () -> Unit,
     suggestion: String? = null,
-    onSuggestionClick: (String) -> Unit = {}
+    isAiSuggestionsEnabled: Boolean = true,
+    isNewMessageReceived: Boolean = false,
+    isGeneratingSuggestion: Boolean = false,
+    onRegenerateSuggestion: () -> Unit = {},
+    onDismissSuggestion: () -> Unit = {},
+    onToggleAiSuggestions: () -> Unit = {}
 ) {
     var text by remember { mutableStateOf("") }
+    var isFocused by remember { mutableStateOf(false) }
+
+    val shouldGlow =
+        isAiSuggestionsEnabled && !isGeneratingSuggestion && (isNewMessageReceived || suggestion == null)
 
     Column(Modifier.navigationBarsPadding()) {
-        if (suggestion != null) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .clickable {
-                        text = suggestion
-                        onSuggestionClick(suggestion)
-                    },
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.tertiaryContainer,
-                shadowElevation = 4.dp
-            ) {
-                Text(
-                    text = "Suggestion: $suggestion",
-                    modifier = Modifier.padding(8.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                )
-            }
+        if (isAiSuggestionsEnabled && (suggestion != null || isGeneratingSuggestion)) {
+            AiSuggestionBubble(
+                suggestion = suggestion ?: "",
+                onSuggestionClick = { selectedSuggestion ->
+                    text = selectedSuggestion
+                },
+                onRegenerateClick = onRegenerateSuggestion,
+                onCloseClick = onDismissSuggestion,
+                isLoading = isGeneratingSuggestion
+            )
         }
         Row(
             modifier = Modifier
@@ -259,13 +277,26 @@ fun ChatInput(
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Box {
+                AiToggleButton(
+                    isAiSuggestionsEnabled = isAiSuggestionsEnabled,
+                    shouldGlow = shouldGlow,
+                    onToggleAiSuggestions = {
+                        onToggleAiSuggestions()
+                    }
+                )
+            }
+
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 8.dp)
-                    .onFocusChanged { if (it.isFocused) onFocus() },
+                    .padding(horizontal = 8.dp)
+                    .onFocusChanged {
+                        isFocused = it.isFocused
+                        if (it.isFocused) onFocus()
+                    },
                 placeholder = { Text("Type a message...") },
                 maxLines = 3,
                 shape = RoundedCornerShape(24.dp)
@@ -302,5 +333,40 @@ private fun formatLastSeen(timestamp: Long): String {
         minutes < 60 -> "Last seen $minutes minutes ago"
         minutes < 24 * 60 -> "Last seen ${minutes / 60} hours ago"
         else -> "Last seen recently"
+    }
+}
+
+@Composable
+fun ChatSummaryDialog(
+    isVisible: Boolean,
+    summary: String?,
+    isLoading: Boolean,
+    onDismiss: () -> Unit
+) {
+    if (isVisible) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            text = {
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator()
+                            Spacer(Modifier.height(8.dp))
+                            Text("Generating summary...")
+                        }
+                    }
+                } else {
+                    MarkdownText(markdown = summary ?: "")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Close")
+                }
+            }
+        )
     }
 }
