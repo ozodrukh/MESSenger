@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,17 @@ plugins {
 
     id("kotlin-parcelize")
 }
+
+val env = Properties().apply {
+    val envFile = rootProject.file(".env")
+    if (envFile.exists()) {
+        envFile.inputStream().use { load(it) }
+    }
+}
+
+val openRouterApiKey = env.getProperty("OPENROUTER_API_KEY")
+    ?: System.getenv("OPENROUTER_API_KEY")
+    ?: ""
 
 android {
     namespace = "com.ozodrukh.mess"
@@ -21,6 +34,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "OPENROUTER_API_KEY", "\"$openRouterApiKey\"")
     }
 
     buildTypes {
@@ -41,6 +56,13 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1,DEPENDENCIES,io.netty.versions.properties,INDEX.LIST}"
+        }
     }
 }
 
@@ -51,6 +73,8 @@ dependencies {
     implementation(project(":feature_dialogs"))
     implementation(project(":feature_profile"))
     implementation(project(":feature_chat"))
+    implementation(project(":ai-interface"))
+    implementation(project(":openrouter-impl"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

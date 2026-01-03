@@ -1,5 +1,11 @@
 import org.gradle.kotlin.dsl.maven
 
+include(":openrouter-impl")
+
+
+include(":ai-interface")
+
+
 include(":feature_chat")
 
 

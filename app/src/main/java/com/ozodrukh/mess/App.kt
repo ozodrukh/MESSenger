@@ -7,6 +7,7 @@ import com.ozodrukh.feature.chat.di.FeatureChatModule
 import com.ozodrukh.feature.profile.di.ProfileModule
 import com.ozodrukh.feature.user.auth.di.FeatureUserAuthModule
 import com.ozodrukh.feature_dialogs.di.FeatureDialogsModule
+import dev.ioio.estetique.di.AppModule
 import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -24,6 +25,7 @@ class App : Application() {
             androidContext(this@App)
             androidLogger()
             modules(
+                AppModule,
                 AuthModule,
                 CoreModule,
                 FeatureUserAuthModule,
