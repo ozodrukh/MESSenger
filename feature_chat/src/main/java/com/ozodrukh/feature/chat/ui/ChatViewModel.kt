@@ -17,7 +17,7 @@ class ChatViewModel(
     private val chatId: ChatId
 ) : ViewModel() {
 
-    val uiState: StateFlow<ChatUiState> = repository.getMessages(chatId)
+    val uiState: StateFlow<ChatUiState> = repository.getChatDetails(chatId)
         .map { ChatUiState.Success(it) as ChatUiState }
         .catch { emit(ChatUiState.Error(it.message ?: "Unknown error")) }
         .stateIn(
