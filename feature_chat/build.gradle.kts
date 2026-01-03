@@ -37,6 +37,7 @@ android {
 dependencies {
     implementation(project(":core"))
     implementation(project(":ai-interface"))
+    implementation("com.github.jeziellago:compose-markdown:0.5.8")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

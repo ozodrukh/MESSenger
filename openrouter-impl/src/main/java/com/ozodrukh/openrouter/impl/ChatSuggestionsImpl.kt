@@ -16,7 +16,26 @@ class ChatSuggestionsImpl(apiKey: String) : ChatSuggestion {
     override suspend fun suggestNextMessage(history: List<Message>): Message {
         val llmResponse = openRouterClient.execute(
             prompt = prompt("message-suggestion") {
-                system("Provide next message for user based on message history")
+                system("""
+                    You are an AI acting as a ghostwriter for "me" in a chat conversation. 
+
+                    Your task is to generate the **next immediate response** to "other_peer".
+
+                    ### Instructions:
+                    1.  **Style Matching**: Analyze the messages labeled "me" in the provided history. Mimic the following traits:
+                        *   **Capitalization**: (e.g., do I use proper caps or all lowercase?)
+                        *   **Punctuation**: (e.g., do I use periods at the end of sentences? Exclamation points? Ellipses?)
+                        *   **Length**: (e.g., do I write long paragraphs or short bursts?)
+                        *   **Tone**: (e.g., professional, casual, sarcastic, or direct?)
+                    2.  **Context Logic**: Read the last message from "other_peer" and formulate a logical reply that moves the conversation forward or answers their question.
+                    3.  **Formatting Constraints**: 
+                        *   Output **ONLY** the raw text of the reply. 
+                        *   Do NOT include "Me:", "Response:", or quotes.
+                        *   Do NOT provide an explanation of why you wrote it.
+
+                    ### (Optional) My Intent:
+                    [If you have a specific goal, type it here (e.g., "Agree with them" or "Tell them I'm busy"). If not, leave blank.]
+                """.trimIndent())
                 user(history.joinToString("\n") {
                     if (it.senderId == "me") {
                         "me: ${it.text}"
@@ -29,14 +48,41 @@ class ChatSuggestionsImpl(apiKey: String) : ChatSuggestion {
             tools = emptyList()
         )
 
-        return llmResponse.firstOrNull()?.let { response -> aiMessage(response.content) } ?: emptyAiMessage
+        return llmResponse.firstOrNull()?.let { response -> aiMessage(response.content) }
+            ?: emptyAiMessage
     }
 
     override suspend fun createSummary(history: List<Message>): Message {
         val llmResponse = openRouterClient.execute(
             prompt = prompt("message-suggestion") {
-                system("You are a helpful assistant that summarizes messages from a conversation")
-                user(history.joinToString("\n") {
+                system(
+                    """
+                        You are an expert meeting secretary and project manager. I am providing a chat transcript between two people ("me" and "other_peer").
+
+                        Your task is to analyze the conversation and generate a structured Markdown summary. 
+
+                        Please follow these rules:
+                        1. **Filter Noise**: Ignore casual small talk or greetings; focus only on substantial information.
+                        2. **Assign Ownership**: For action items, clearly state WHO is responsible for the task based on the context.
+                        3. **Format**: Use the specific Markdown structure outlined below.
+
+                        ### Output Format:
+
+                        # Conversation Summary
+                        **Overview**: [A 1-2 sentence high-level summary of the entire discussion]
+
+                        ## 🔑 Key Topics
+                        *   **[Topic Name]**: Brief explanation of what was discussed.
+                        *   **[Topic Name]**: Brief explanation of what was discussed.
+
+                        ## 🚀 Action Items
+                        - [ ] **[Who]**: [Task description]
+                        - [ ] **[Who]**: [Task description]
+                    """.trimIndent()
+                )
+                user(
+                    "**Chat History:**\n" +
+                    history.joinToString("\n") {
                     if (it.senderId == "me") {
                         "me: ${it.text}"
                     } else {
@@ -48,7 +94,8 @@ class ChatSuggestionsImpl(apiKey: String) : ChatSuggestion {
             tools = emptyList()
         )
 
-        return llmResponse.firstOrNull()?.let { response -> aiMessage(response.content) } ?: emptyAiMessage
+        return llmResponse.firstOrNull()?.let { response -> aiMessage(response.content) }
+            ?: emptyAiMessage
     }
 
     companion object {
