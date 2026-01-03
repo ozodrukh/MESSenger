@@ -6,17 +6,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -39,10 +42,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.ozodrukh.core.domain.model.ChatId
 import com.ozodrukh.feature.chat.models.ChatUiState
 import com.ozodrukh.feature.chat.models.Message
@@ -64,7 +68,7 @@ fun ChatScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is ChatUiState.Success) {
-            val count = (uiState as ChatUiState.Success).messages.size
+            val count = (uiState as ChatUiState.Success).data.messages.size
             if (count > 0) {
                 listState.animateScrollToItem(count - 1)
             }
@@ -75,8 +79,35 @@ fun ChatScreen(
         modifier = Modifier.imePadding(),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
+            val state = uiState
+            val title = if (state is ChatUiState.Success) state.data.chatName else "Chat ${chatId.value}"
+            val subtitle = if (state is ChatUiState.Success) {
+                 if (state.data.isOnline) "Online" else formatLastSeen(state.data.lastSeen)
+            } else null
+            
             TopAppBar(
-                title = { Text("Chat ${chatId.value}") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                         if (state is ChatUiState.Success) {
+                             AsyncImage(
+                                 model = state.data.chatAvatarUrl,
+                                 contentDescription = null,
+                                 contentScale = ContentScale.Crop,
+                                 modifier = Modifier
+                                     .size(40.dp)
+                                     .clip(CircleShape)
+                                     .background(MaterialTheme.colorScheme.surfaceVariant)
+                             )
+                             Spacer(Modifier.width(12.dp))
+                         }
+                         Column {
+                             Text(text = title, style = MaterialTheme.typography.titleMedium)
+                             if (subtitle != null) {
+                                 Text(text = subtitle, style = MaterialTheme.typography.bodySmall)
+                             }
+                         }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -111,7 +142,7 @@ fun ChatScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(state.messages, key = { it.id }) { message ->
+                        items(state.data.messages, key = { it.id }) { message ->
                             MessageItem(message = message)
                         }
                     }
@@ -203,4 +234,15 @@ fun ChatInput(onSend: (String) -> Unit) {
 private fun formatTime(timestamp: Long): String {
     val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
     return sdf.format(Date(timestamp))
+}
+
+private fun formatLastSeen(timestamp: Long): String {
+    val diff = System.currentTimeMillis() - timestamp
+    val minutes = diff / (1000 * 60)
+    return when {
+        minutes < 1 -> "Last seen just now"
+        minutes < 60 -> "Last seen $minutes minutes ago"
+        minutes < 24 * 60 -> "Last seen ${minutes / 60} hours ago"
+        else -> "Last seen recently"
+    }
 }

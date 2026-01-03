@@ -17,6 +17,7 @@ dependencies {
 
     implementation(libs.retrofit)
     implementation(libs.okhttp)
+    implementation(libs.gson)
 
     // Koin
     implementation(platform(libs.koin.bom))

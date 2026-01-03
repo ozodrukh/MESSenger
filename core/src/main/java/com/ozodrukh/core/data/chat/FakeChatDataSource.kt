@@ -81,7 +81,9 @@ class FakeChatDataSource {
         messages: List<Message> = emptyList(),
     ): Chat {
         val chatId = ChatId(id)
-        val user = User(id, name, avatar)
+        val isOnline = id.hashCode() % 2 == 0
+        val lastSeen = System.currentTimeMillis() - (1000 * 60 * (1..60).random()) // 1-60 mins ago
+        val user = User(id, name, avatar, isOnline, lastSeen)
 
         val timestamp = System.currentTimeMillis()
 

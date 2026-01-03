@@ -14,8 +14,17 @@ data class Message(
 )
 
 @Immutable
+data class ChatDetails(
+    val messages: List<Message>,
+    val chatName: String,
+    val chatAvatarUrl: String?,
+    val isOnline: Boolean,
+    val lastSeen: Long
+)
+
+@Immutable
 sealed interface ChatUiState {
     data object Loading : ChatUiState
-    data class Success(val messages: List<Message>) : ChatUiState
+    data class Success(val data: ChatDetails) : ChatUiState
     data class Error(val message: String) : ChatUiState
 }

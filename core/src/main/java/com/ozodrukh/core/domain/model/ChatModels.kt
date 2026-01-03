@@ -11,7 +11,9 @@ value class ChatId(val value: String)
 data class User(
     val id: String,
     val name: String,
-    val avatarUrl: String?
+    val avatarUrl: String?,
+    val isOnline: Boolean = false,
+    val lastSeen: Long = 0
 )
 
 @Serializable
