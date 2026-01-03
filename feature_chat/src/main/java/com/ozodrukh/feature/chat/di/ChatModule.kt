@@ -13,6 +13,7 @@ val FeatureChatModule = module {
     viewModel { (chatId: ChatId) ->
         ChatViewModel(
             repository = get(),
+            chatSuggestion = get(),
             chatId = chatId
         )
     }

@@ -10,6 +10,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/ai-interface" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/auth" />
             <option value="$PROJECT_DIR$/core" />
@@ -17,6 +18,7 @@
             <option value="$PROJECT_DIR$/feature_dialogs" />
             <option value="$PROJECT_DIR$/feature_profile" />
             <option value="$PROJECT_DIR$/feature_user_auth" />
+            <option value="$PROJECT_DIR$/openrouter-impl" />
           </set>
         </option>
       </GradleProjectSettings>
