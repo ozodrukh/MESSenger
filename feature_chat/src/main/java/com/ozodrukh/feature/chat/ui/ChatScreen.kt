@@ -70,7 +70,7 @@ fun ChatScreen(
         if (uiState is ChatUiState.Success) {
             val count = (uiState as ChatUiState.Success).data.messages.size
             if (count > 0) {
-                listState.animateScrollToItem(count - 1)
+                listState.animateScrollToItem(0)
             }
         }
     }
@@ -138,11 +138,12 @@ fun ChatScreen(
                 is ChatUiState.Success -> {
                     LazyColumn(
                         state = listState,
+                        reverseLayout = true,
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(state.data.messages, key = { it.id }) { message ->
+                        items(state.data.messages.asReversed(), key = { it.id }) { message ->
                             MessageItem(message = message)
                         }
                     }
