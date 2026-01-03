@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ozodrukh.core.domain.model.ChatId
 import com.ozodrukh.feature.chat.data.ChatRepository
 import com.ozodrukh.feature.chat.models.ChatUiState
+import com.ozodrukh.llm.api.ChatSuggestion
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 
 class ChatViewModel(
     private val repository: ChatRepository,
+    private val chatSuggestion: ChatSuggestion,
     private val chatId: ChatId
 ) : ViewModel() {
 
