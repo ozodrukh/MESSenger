@@ -1,6 +1,7 @@
 package com.ozodrukh.feature.profile.data.repository
 
 import com.ozodrukh.core.network.AppConfigs
+import com.ozodrukh.feature.profile.data.datasource.ProfileLocalDataSource
 import com.ozodrukh.feature.profile.data.model.UploadImageDto
 import com.ozodrukh.feature.profile.data.model.UpdateProfileRequestDto
 import com.ozodrukh.feature.profile.data.model.UserProfileDto
@@ -8,15 +9,23 @@ import com.ozodrukh.feature.profile.data.remote.ProfileApi
 import com.ozodrukh.feature.profile.domain.model.UserProfile
 import com.ozodrukh.feature.profile.domain.model.UserProfileUpdate
 import com.ozodrukh.feature.profile.domain.repository.ProfileRepository
+import kotlinx.coroutines.flow.Flow
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class ProfileRepositoryImpl(
-    private val api: ProfileApi
+    private val api: ProfileApi,
+    private val localDataSource: ProfileLocalDataSource
 ) : ProfileRepository {
+
+    override fun observeProfile(): Flow<UserProfile?> {
+        return localDataSource.observeProfile()
+    }
 
     override suspend fun getProfile(): Result<UserProfile> = runCatching {
         val response = api.getProfile()
-        response.profileData.toDomain()
+        val profile = response.profileData.toDomain()
+        localDataSource.saveProfile(profile)
+        profile
     }
 
     override suspend fun updateProfile(update: UserProfileUpdate): Result<Unit> = runCatching {
@@ -36,6 +45,8 @@ class ProfileRepositoryImpl(
             }
         )
         api.updateProfile(request)
+        // Refresh profile data to update local storage
+        getProfile().getOrThrow()
     }
 
     private fun getMediaUrl(path: String?): String? {

@@ -17,11 +17,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -60,25 +64,6 @@ fun ProfileScreen(
     }
 
     Column() {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // Edit Button (Top Right)
-            IconButton(
-                onClick = {
-                    val state = uiState
-                    if (state is ProfileUiState.Success) {
-                        onEditProfile(state.profile)
-                    }
-                },
-                modifier = Modifier.align(Alignment.CenterEnd)
-            ) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
-            }
-        }
-
         Box(modifier = Modifier
             .fillMaxSize()) {
             when (val state = uiState) {
@@ -95,13 +80,35 @@ fun ProfileScreen(
                 }
 
                 is ProfileUiState.Success -> {
-                    ProfileContent(
-                        profile = state.profile,
-                        onLogout = {
-                            viewModel.logout()
-                            onLogout()
+                    Box {
+                        ProfileContent(
+                            profile = state.profile,
+                            onLogout = {
+                                viewModel.logout()
+                                onLogout()
+                            }
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            // Edit Button (Top Right)
+                            IconButton(
+                                onClick = {
+                                    val state = uiState
+                                    if (state is ProfileUiState.Success) {
+                                        onEditProfile(state.profile)
+                                    }
+                                },
+                                modifier = Modifier.align(Alignment.CenterEnd)
+                            ) {
+                                Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
+                            }
                         }
-                    )
+
+                    }
                 }
             }
         }
@@ -165,6 +172,51 @@ private fun ProfileContent(
             }
         }
 
+        // Info Section
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        ) {
+            ProfileInfoRow(
+                icon = Icons.Default.Phone,
+                text = profile.phone,
+                label = "Mobile"
+            )
+
+            profile.city?.let {
+                ProfileInfoRow(
+                    icon = Icons.Default.LocationOn,
+                    text = it,
+                    label = "City"
+                )
+            }
+
+            profile.birthday?.let {
+                ProfileInfoRow(
+                    icon = Icons.Default.Cake,
+                    text = it,
+                    label = "Birthday"
+                )
+            }
+
+            profile.vk?.let {
+                ProfileInfoRow(
+                    icon = Icons.Default.Link,
+                    text = it,
+                    label = "VK"
+                )
+            }
+
+            profile.instagram?.let {
+                ProfileInfoRow(
+                    icon = Icons.Default.Link,
+                    text = it,
+                    label = "Instagram"
+                )
+            }
+        }
+
         HorizontalDivider()
 
         // Fake Settings Items
@@ -187,13 +239,51 @@ private fun ProfileContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         SettingsItem(
-            icon = Icons.Default.ExitToApp,
+            icon = Icons.AutoMirrored.Filled.ExitToApp,
             title = "Log Out",
             textColor = MaterialTheme.colorScheme.error,
             iconColor = MaterialTheme.colorScheme.error,
             onClick = onLogout,
             showChevron = false
         )
+    }
+}
+
+@Composable
+private fun ProfileInfoRow(
+    icon: ImageVector,
+    text: String,
+    label: String? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
+        )
+
+        Spacer(modifier = Modifier.width(24.dp))
+
+        Column {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if (label != null) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 
